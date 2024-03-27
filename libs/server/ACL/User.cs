@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -189,7 +187,7 @@ namespace Garnet.server.ACL
             }
 
             // Categories
-            var highestFlag = Enum.GetValues(typeof(CommandCategory.Flag)).Cast<int>().Max();
+            var highestFlag = (int)CommandCategory.HighestFlag;
 
             for (int i = 0; i <= highestFlag; i++)
             {
