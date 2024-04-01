@@ -388,11 +388,33 @@ namespace Garnet.server
             if (!RespReadUtils.ReadArrayLength(out int count, ref tmp, recvBufferPtr + bytesRead))
                 return false;
             readHead += (int)(tmp - (recvBufferPtr + readHead));
+            ReadOnlySpan<byte> bufSpan = new ReadOnlySpan<byte>(recvBufferPtr, bytesRead);
 
             if (!_authenticator.IsAuthenticated) return ProcessOtherCommands(count, ref storageApi);
 
             var ptr = recvBufferPtr + readHead;
             var cmd = FastParseArrayCommand(count, recvBufferPtr + readHead);
+
+            var commandInfo = RespCommandsInfo.findCommand(cmd.Item1, cmd.Item2);
+            if (commandInfo != null)
+            {
+                int abs_arity = commandInfo.arity > 0 ? commandInfo.arity : -commandInfo.arity;
+                // Checking the minimum arity || exact arity
+                bool arity_check = commandInfo.arity < 0 && count < abs_arity ||
+                                   commandInfo.arity > 0 && count != commandInfo.arity;
+                if (arity_check)
+                {
+                    string err = string.Format(CmdStrings.ErrMissingParam, commandInfo.nameStr);
+                    while (!RespWriteUtils.WriteResponse(new ReadOnlySpan<byte>(Encoding.ASCII.GetBytes(err)),
+                               ref dcurr, dend))
+                        SendAndReset();
+
+                    if (!DrainCommands(bufSpan, count))
+                        return false;
+                    return true;
+                }
+            }
+
             var success = cmd switch
             {
                 (RespCommand.MGET, 0) => NetworkMGET(count, ptr, ref storageApi),
