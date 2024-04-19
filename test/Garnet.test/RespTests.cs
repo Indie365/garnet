@@ -550,6 +550,20 @@ namespace Garnet.test
         }
 
         [Test]
+        public void SingleIncrZero()
+        {
+            using var redis = ConnectionMultiplexer.Connect(TestUtils.GetConfig());
+            var db = redis.GetDatabase(0);
+
+            var strKey = "key1";
+            db.StringSet(strKey, 0);
+            long n = db.StringIncrement(strKey);
+            long nRetVal = Convert.ToInt64(db.StringGet(strKey));
+            Assert.AreEqual(n, nRetVal);
+        }
+
+        [Test]
+        [TestCase("key1", 0)]
         [TestCase("key1", 1000)]
         public void SingleDecr(string strKey, int nVal)
         {
@@ -1753,5 +1767,43 @@ namespace Garnet.test
             Assert.IsTrue(time.Value.TotalSeconds > 0);
         }
 
+        #region Regression tests
+
+        #region #290 INCR DECR operation zero
+        [Test]
+        public void IncrAndDecrTest_290()
+        {
+            using var redis = ConnectionMultiplexer.Connect(TestUtils.GetConfig());
+            var db = redis.GetDatabase(0);
+
+            var key1 = "key1";
+            var result = db.StringIncrement(key1);
+            Assert.AreEqual(1, result);
+
+            result = db.StringIncrement(key1);
+            Assert.AreEqual(2, result);
+
+            result = db.StringDecrement(key1);
+            Assert.AreEqual(1, result);
+
+            result = db.StringDecrement(key1);
+            Assert.AreEqual(0, result);
+
+            result = db.StringDecrement(key1);
+            Assert.AreEqual(-1, result);
+
+            result = db.StringIncrement(key1);
+            Assert.AreEqual(0, result);
+
+            var key2 = "key2";
+            var setResult = db.StringSet(key2, 0);
+            Assert.IsTrue(setResult);
+
+            result = db.StringIncrement(key2);
+            Assert.AreEqual(1, result);
+        }
+        #endregion
+
+        #endregion
     }
 }
