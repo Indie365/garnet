@@ -23,19 +23,19 @@ namespace Garnet.test
         ManualResetEventSlim waiter;
         const int maxIterations = 3;
 
-        static readonly SortedSetEntry[] leaderBoard = new SortedSetEntry[]
-             {
+        static readonly SortedSetEntry[] leaderBoard =
+             [
                 new SortedSetEntry("Dave", 340),
-                new SortedSetEntry("Kendra", 400),
-                new SortedSetEntry("Tom", 560),
-                new SortedSetEntry("Barbara", 650),
-                new SortedSetEntry("Jennifer", 690),
-                new SortedSetEntry("Peter", 690),
-                new SortedSetEntry("Frank", 740),
-                new SortedSetEntry("Lester", 790),
-                new SortedSetEntry("Alice", 850),
-                new SortedSetEntry("Mary", 980)
-             };
+                 new SortedSetEntry("Kendra", 400),
+                 new SortedSetEntry("Tom", 560),
+                 new SortedSetEntry("Barbara", 650),
+                 new SortedSetEntry("Jennifer", 690),
+                 new SortedSetEntry("Peter", 690),
+                 new SortedSetEntry("Frank", 740),
+                 new SortedSetEntry("Lester", 790),
+                 new SortedSetEntry("Alice", 850),
+                 new SortedSetEntry("Mary", 980)
+             ];
 
 
         [SetUp]
@@ -64,10 +64,10 @@ namespace Garnet.test
             using var db = new GarnetClient(TestUtils.Address, TestUtils.Port);
             db.Connect();
 
-            List<string> parameters = new()
-            {
+            List<string> parameters =
+            [
                 "leaderboard"
-            };
+            ];
 
             foreach (SortedSetEntry item in leaderBoard)
             {
@@ -93,8 +93,7 @@ namespace Garnet.test
         {
             using var db = new GarnetClient(TestUtils.Address, TestUtils.Port);
             db.Connect();
-            List<string> parameters = new();
-            parameters.AddRange(new string[] { "myzset1", "1", "KEY1", "2", "KEY2" });
+            List<string> parameters = ["myzset1", "1", "KEY1", "2", "KEY2"];
             db.ExecuteForMemoryResult(SimpleMemoryResultCallback, 1, "ZADD", parameters);
             waiter.Wait();
             waiter.Reset();
@@ -106,8 +105,7 @@ namespace Garnet.test
             using var db = new GarnetClient(TestUtils.Address, TestUtils.Port);
             db.Connect();
             var expectedResult = "2";
-            List<string> parameters = new();
-            parameters.AddRange(new string[] { "myzset1", "1", "KEY1", "2", "KEY2" });
+            List<string> parameters = ["myzset1", "1", "KEY1", "2", "KEY2"];
             db.ExecuteForStringResult((c, s) =>
             {
                 Assert.IsTrue(s == expectedResult); waiter.Set();
@@ -132,8 +130,7 @@ namespace Garnet.test
         {
             using var db = new GarnetClient(TestUtils.Address, TestUtils.Port);
             db.Connect();
-            List<string> parameters = new();
-            parameters.AddRange(new string[] { "myzset1", "1", "KEY1", "2", "KEY2" });
+            List<string> parameters = ["myzset1", "1", "KEY1", "2", "KEY2"];
             db.ExecuteForMemoryResult(SimpleMemoryResultCallback, 1, "ZADD", parameters);
             waiter.Wait();
             waiter.Reset();
@@ -178,10 +175,10 @@ namespace Garnet.test
                             Assert.Fail("Concurrency issue, review test: CanDoZaddGarnetMultithread");
                         }
 
-                        List<string> parameters = new()
-                        {
+                        List<string> parameters =
+                        [
                             name
-                        };
+                        ];
                         foreach (SortedSetEntry item in leaderBoard)
                         {
                             parameters.Add(item.Score.ToString());
@@ -191,8 +188,7 @@ namespace Garnet.test
                         await db.ExecuteForMemoryResultAsync("ZADD", parameters);
                         await Task.Delay(millisecondsDelay: rnd.Next(10, 50));
 
-                        parameters = new List<string>();
-                        parameters.AddRange(new string[] { name, "-inf", "+inf" });
+                        parameters = [name, "-inf", "+inf"];
 
                         var result = await db.ExecuteForMemoryResultArrayAsync("ZRANGEBYSCORE", parameters);
 
@@ -237,10 +233,10 @@ namespace Garnet.test
             using var db = new GarnetClient(TestUtils.Address, TestUtils.Port);
             db.Connect();
 
-            List<string> parameters = new()
-            {
+            List<string> parameters =
+            [
                 "leaderboard"
-            };
+            ];
 
             foreach (SortedSetEntry item in leaderBoard)
             {
@@ -250,8 +246,7 @@ namespace Garnet.test
 
             await db.ExecuteForMemoryResultAsync("ZADD", parameters);
 
-            parameters = new List<string>();
-            parameters.AddRange(new string[] { "leaderboard", "-inf", "+inf" });
+            parameters = ["leaderboard", "-inf", "+inf"];
             var result = await db.ExecuteForStringArrayResultAsync("ZRANGEBYSCORE", parameters);
 
             // assert the elements
@@ -267,9 +262,8 @@ namespace Garnet.test
         {
             using var db = new GarnetClient(TestUtils.Address, TestUtils.Port);
             db.Connect();
-            List<string> parameters = new();
-            parameters = new List<string>();
-            parameters.AddRange(new string[] { "myzset1", "1", "KEY1", "2", "KEY2" });
+            List<string> parameters = [];
+            parameters = ["myzset1", "1", "KEY1", "2", "KEY2"];
 
             var result = await db.ExecuteForStringResultAsync("ZADD", parameters);
             Assert.AreEqual("2", result);
@@ -290,10 +284,10 @@ namespace Garnet.test
             using var db = new GarnetClient(TestUtils.Address, TestUtils.Port);
             db.Connect();
 
-            List<string> parameters = new()
-            {
+            List<string> parameters =
+            [
                 "leaderboard"
-            };
+            ];
 
             foreach (SortedSetEntry item in leaderBoard)
             {
@@ -306,8 +300,7 @@ namespace Garnet.test
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
 
-            parameters = new List<string>();
-            parameters.AddRange(new string[] { "leaderboard", "-inf", "+inf" });
+            parameters = ["leaderboard", "-inf", "+inf"];
             var t = db.ExecuteForMemoryResultArrayWithCancellationAsync("ZRANGEBYSCORE", parameters, token);
             var result = t.GetAwaiter().GetResult();
             Assert.IsTrue(t.IsCompletedSuccessfully);
@@ -331,10 +324,10 @@ namespace Garnet.test
             using var db = new GarnetClient(TestUtils.Address, TestUtils.Port);
             db.Connect();
 
-            List<string> parameters = new()
-            {
+            List<string> parameters =
+            [
                 "leaderboard"
-            };
+            ];
 
             foreach (SortedSetEntry item in leaderBoard)
             {
@@ -377,7 +370,7 @@ namespace Garnet.test
             db.Connect();
 
             var parameters = new List<string>();
-            parameters.AddRange(new string[] { "leaderboard", "-inf", "+inf" });
+            parameters.AddRange(["leaderboard", "-inf", "+inf"]);
 
             for (int i = 0; i <= maxIterations; i++)
             {
@@ -516,10 +509,10 @@ namespace Garnet.test
             Assert.AreEqual(expectedValue, len);
 
             // add a new Sorted Set
-            List<string> parameters = new()
-            {
+            List<string> parameters =
+            [
                 "leaderboard"
-            };
+            ];
 
             foreach (SortedSetEntry item in leaderBoard)
             {
